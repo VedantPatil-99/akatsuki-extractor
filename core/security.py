@@ -11,7 +11,6 @@ async def verify_qstash_signature(request: Request):
     """
     Dependency to verify the incoming webhook signature.
     """
-    # FIX: Use settings.ENVIRONMENT instead of os.getenv
     if settings.ENVIRONMENT == "development":
         return True
 
@@ -20,11 +19,14 @@ async def verify_qstash_signature(request: Request):
         raise HTTPException(status_code=401, detail="Missing Upstash-Signature header")
 
     body = await request.body()
+    
+    actual_url = str(request.url).replace("http://", "https://")
+
     try:
         is_valid = receiver.verify(
             body=body.decode("utf-8"),
             signature=signature,
-            url=str(request.url)
+            url=actual_url
         )
         if not is_valid:
             raise HTTPException(status_code=401, detail="Invalid QStash signature")
