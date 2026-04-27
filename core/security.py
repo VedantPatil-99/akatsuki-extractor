@@ -20,13 +20,12 @@ async def verify_qstash_signature(request: Request):
 
     body = await request.body()
     
-    actual_url = "https://akatsuki-extractor-production.up.railway.app/api/extract"
-
     try:
+        # request.url will now automatically be the correct HTTPS string
         is_valid = receiver.verify(
             body=body.decode("utf-8"),
             signature=signature,
-            url=actual_url
+            url=str(request.url)
         )
         if not is_valid:
             raise HTTPException(status_code=401, detail="Invalid QStash signature")
