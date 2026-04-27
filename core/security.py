@@ -20,7 +20,7 @@ async def verify_qstash_signature(request: Request):
 
     body = await request.body()
     
-    actual_url = str(request.url).replace("http://", "https://")
+    actual_url = "https://akatsuki-extractor-production.up.railway.app/api/extract"
 
     try:
         is_valid = receiver.verify(
