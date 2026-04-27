@@ -20,16 +20,24 @@ async def verify_qstash_signature(request: Request):
 
     body = await request.body()
     
+    # Force rebuild the exact HTTPS URL using the original Host header
+    host = request.headers.get("host")
+    actual_url = f"https://{host}{request.url.path}"
+
     try:
-        # request.url will now automatically be the correct HTTPS string
         is_valid = receiver.verify(
             body=body.decode("utf-8"),
             signature=signature,
-            url=str(request.url)
+            url=actual_url
         )
         if not is_valid:
+            print("🛑 QSTASH ERROR: Signature evaluated to False but threw no exception.")
             raise HTTPException(status_code=401, detail="Invalid QStash signature")
+            
     except Exception as e:
+        # This print statement is our smoking gun. It will show in Railway App Logs!
+        print(f"🛑 QSTASH VERIFICATION FAILED: {str(e)}")
+        print(f"🛑 URL CHECKED: {actual_url}")
         raise HTTPException(status_code=401, detail=f"Signature verification failed: {str(e)}")
     
     return True
